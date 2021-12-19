@@ -98,4 +98,4 @@ Bhimsen Padalkar, bhim.padalkar@gmail.com
 
 ## License
 
-SlidingTabLayout is available under the MIT license. See the LICENSE file for more info.
+SwiftUINavigation is available under the MIT license. See the LICENSE file for more info.
