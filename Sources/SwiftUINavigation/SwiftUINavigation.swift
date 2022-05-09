@@ -4,15 +4,17 @@ import SwiftUI
 
 public struct NavigationController: View {
     @ObservedObject var stack: NavigationStack
+    let edgesIgnoringSafeArea: Edge.Set
 
-    public init<Content: View>(@ViewBuilder _ view: @escaping () -> Content) {
+    public init<Content: View>(@ViewBuilder _ view: @escaping () -> Content, edgesIgnoringSafeArea: Edge.Set = []) {
         stack = NavigationStack(view())
+        self.edgesIgnoringSafeArea = edgesIgnoringSafeArea
     }
 
     public var body: some View {
         let vc = UINavVC(stack: stack)
             .environmentObject(stack)
-            .edgesIgnoringSafeArea([.top, .bottom])
+            .edgesIgnoringSafeArea(edgesIgnoringSafeArea)
         if #available(iOS 15.0, *) {
             vc
         } else {
