@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'SwiftUINavigation'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'UIKit like navigation controller in SwiftUI'
 
   s.description      = <<-DESC

@@ -1,5 +1,7 @@
 import SwiftUI
 
+import SwiftUI
+
 public struct NavigationController: View {
     @ObservedObject var stack: NavigationStack
 
@@ -8,10 +10,14 @@ public struct NavigationController: View {
     }
 
     public var body: some View {
-        UINavVC(stack: stack)
+        let vc = UINavVC(stack: stack)
             .environmentObject(stack)
-            .navigationBarHidden(true)
             .edgesIgnoringSafeArea([.top, .bottom])
+        if #available(iOS 15.0, *) {
+            vc
+        } else {
+            vc.navigationBarHidden(true)
+        }
     }
 }
 
@@ -31,6 +37,12 @@ class CustomUINavigationController: UINavigationController, UIGestureRecognizerD
     override func viewDidLoad() {
         super.viewDidLoad()
         interactivePopGestureRecognizer?.delegate = self
+        navigationBar.isHidden = true
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationBar.isHidden = true
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -39,49 +51,53 @@ class CustomUINavigationController: UINavigationController, UIGestureRecognizerD
 }
 
 public class NavigationStack: ObservableObject {
-    let navVC: UINavigationController
-    var controllers: [UIViewController] {
+    public let navVC: UINavigationController
+    public var controllers: [UIViewController] {
         return navVC.viewControllers
     }
 
-    init<Content: View>(_ initialPage: Content) {
+    public init<Content: View>(_ initialPage: Content) {
         navVC = CustomUINavigationController()
-        navVC.setViewControllers([initialPage.environmentObject(self).toVC()], animated: false)
+        navVC.setViewControllers([initialPage.toVC(self)], animated: false)
     }
 
-    convenience init() {
-        self.init(EmptyView())
+    public init() {
+        navVC = CustomUINavigationController()
     }
 
     public func push<Content: View>(_ page: Content, animated: Bool = true) {
-        navVC.pushViewController(page.toVC(), animated: animated)
+        navVC.pushViewController(page.toVC(self), animated: animated)
     }
 
     public func pop(_ noOfPages: Int = 1, animated: Bool = true) {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         navVC.setViewControllers(Array(navVC.viewControllers[0..<max(1, navVC.viewControllers.count - noOfPages)]), animated: animated)
     }
-    
+
     public func popToRoot(animated: Bool = true) {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         navVC.popToRootViewController(animated: animated)
     }
 
     public func replace<Content: View>(_ page: Content, animated: Bool = true) {
-        navVC.setViewControllers(Array(navVC.viewControllers[0..<(navVC.viewControllers.count - 1)] + [page.toVC()]), animated: animated)
+        navVC.setViewControllers(Array(navVC.viewControllers[0..<(navVC.viewControllers.count - 1)] + [page.toVC(self)]), animated: animated)
     }
 
-    public func setNavigationBarHidden(_ hidden: Bool) {
-        navVC.isNavigationBarHidden = hidden
+    public func makeRoot<Content: View>(_ page: Content, animated: Bool = true) {
+        navVC.setViewControllers([page.toVC(self)], animated: false)
     }
 }
 
 private extension View {
-    func toVC() -> UIViewController {
-        CustomHostingVC(rootView: self)
+    func toVC(_ stack: NavigationStack) -> UIViewController {
+        if #available(iOS 15.0, *) {
+            return CustomHostingVC(rootView: self.environmentObject(stack))
+        } else {
+            return CustomHostingVC(rootView: self.environmentObject(stack).navigationBarHidden(true))
+        }
     }
 }
 
 class CustomHostingVC<Content>: UIHostingController<Content> where Content: View {
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-    }
+
 }
