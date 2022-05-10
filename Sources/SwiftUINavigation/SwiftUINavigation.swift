@@ -86,7 +86,7 @@ public class NavigationStack: ObservableObject {
     }
 
     public func makeRoot<Content: View>(_ page: Content, animated: Bool = true) {
-        navVC.setViewControllers([page.toVC(self)], animated: false)
+        navVC.setViewControllers([page.toVC(self)], animated: animated)
     }
 }
 
