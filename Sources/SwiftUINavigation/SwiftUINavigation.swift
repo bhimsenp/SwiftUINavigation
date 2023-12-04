@@ -81,8 +81,11 @@ public class NavigationStack: ObservableObject {
         navVC.popToRootViewController(animated: animated)
     }
 
-    public func replace<Content: View>(_ page: Content, animated: Bool = true) {
-        navVC.setViewControllers(Array(navVC.viewControllers[0..<(navVC.viewControllers.count - 1)] + [page.toVC(self)]), animated: animated)
+    public func replace<Content: View>(_ page: Content, animated: Bool = true, count: Int = 1) {
+        navVC.setViewControllers(
+            Array(navVC.viewControllers[0..<(navVC.viewControllers.count - count)] + [page.toVC(self)]),
+            animated: animated
+        )
     }
 
     public func makeRoot<Content: View>(_ page: Content, animated: Bool = true) {
